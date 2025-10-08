@@ -5,28 +5,29 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>CARD X CHK</title>
   <script src="https://js.stripe.com/v3/"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0a0e14;
-      --card: #1a2028;
-      --text: #d1d5db;
-      --neon-blue: #00f0ff;
-      --neon-green: #00ff00;
-      --border: #2d3748;
-      --shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
-      --radius: 12px;
+      --bg: #0c1018;
+      --card: #1c2526;
+      --text: #b3f0ff;
+      --neon-purple: #9b00ff;
+      --neon-magenta: #ff00cc;
+      --border: #00eaff;
+      --shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
+      --radius: 8px;
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      font-family: 'IBM Plex Mono', monospace;
+      font-family: 'Orbitron', 'IBM Plex Mono', monospace;
       background: var(--bg);
       color: var(--text);
       display: flex;
       flex-direction: column;
       align-items: center;
       min-height: 100vh;
-      padding: 32px;
+      padding: 24px;
       position: relative;
       overflow: hidden;
     }
@@ -37,117 +38,137 @@
       width: 100%;
       height: 100%;
       z-index: -1;
-      opacity: 0.8;
+      opacity: 0.85;
+    }
+    .hud-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 4px,
+        rgba(0, 234, 255, 0.1) 4px,
+        rgba(0, 234, 255, 0.1) 5px
+      );
+      pointer-events: none;
+      z-index: 0;
+      animation: flicker 1.5s infinite;
+    }
+    @keyframes flicker {
+      0%, 100% { opacity: 0.85; }
+      50% { opacity: 0.7; }
     }
     .card {
       width: 100%;
-      max-width: 1200px;
+      max-width: 900px;
       background: var(--card);
       border: 2px solid var(--border);
       border-radius: var(--radius);
-      box-shadow: var(--shadow), 0 0 30px rgba(0, 240, 255, 0.4);
-      padding: 40px;
-      display: grid;
-      grid-template-columns: 1fr 2fr;
-      gap: 40px;
-      z-index: 1;
-    }
-    .panel { padding: 16px; }
-    .form-card {
-      background: #222b33;
-      border: 3px solid var(--neon-blue);
-      border-radius: var(--radius);
+      box-shadow: var(--shadow), 0 0 20px rgba(0, 234, 255, 0.5);
       padding: 32px;
-      box-shadow: 0 0 20px var(--neon-blue);
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      z-index: 1;
+      animation: pulse 4s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { box-shadow: var(--shadow), 0 0 20px rgba(0, 234, 255, 0.5); }
+      50% { box-shadow: var(--shadow), 0 0 30px rgba(0, 234, 255, 0.7); }
+    }
+    .panel { padding: 12px; }
+    .form-card {
+      background: #151b1e;
+      border: 2px solid var(--neon-purple);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: 0 0 15px var(--neon-purple);
       position: relative;
     }
-    .form-card:hover {
-      animation: glitch 0.3s linear infinite;
-    }
     .stripe-element {
-      padding: 20px;
-      border: 3px solid var(--neon-blue);
-      border-radius: 10px;
-      background: #0a0e14;
+      padding: 16px;
+      border: 2px solid var(--neon-purple);
+      border-radius: 6px;
+      background: #0c1018;
       color: var(--text);
-      font-size: 18px;
+      font-size: 16px;
     }
     .actions {
-      margin-top: 20px;
+      margin-top: 16px;
       display: flex;
-      justify-content: flex-end;
+      justify-content: center;
     }
     .btn {
-      background: linear-gradient(90deg, var(--neon-green), var(--neon-blue));
-      color: #000;
+      background: linear-gradient(90deg, var(--neon-purple), var(--neon-magenta));
+      color: #fff;
       border: none;
-      padding: 16px 32px;
-      border-radius: 10px;
-      font-size: 16px;
-      font-weight: 600;
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 700;
       cursor: pointer;
       text-transform: uppercase;
       transition: transform 0.2s, box-shadow 0.2s;
       position: relative;
+      animation: pulse-btn 2s infinite;
     }
     .btn:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 0 25px var(--neon-green), 0 0 25px var(--neon-blue);
-      animation: glitch 0.3s linear infinite;
+      transform: translateY(-2px);
+      box-shadow: 0 0 20px var(--neon-purple), 0 0 20px var(--neon-magenta);
     }
     .btn[disabled] {
-      opacity: 0.4;
+      opacity: 0.5;
       cursor: not-allowed;
       animation: none;
     }
-    @keyframes glitch {
-      0% { transform: translate(0); }
-      20% { transform: translate(-2px, 2px); }
-      40% { transform: translate(-2px, -2px); }
-      60% { transform: translate(2px, 2px); }
-      80% { transform: translate(2px, -2px); }
-      100% { transform: translate(0); }
+    @keyframes pulse-btn {
+      0%, 100% { box-shadow: 0 0 10px var(--neon-purple); }
+      50% { box-shadow: 0 0 15px var(--neon-magenta); }
     }
     .right-panel {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 32px;
-      background: #222b33;
-      border: 3px solid var(--border);
+      display: flex;
+      flex-direction: row;
+      gap: 24px;
+      background: #151b1e;
+      border: 2px solid var(--border);
       border-radius: var(--radius);
-      padding: 32px;
-      box-shadow: 0 0 20px var(--neon-blue);
+      padding: 24px;
+      box-shadow: 0 0 15px var(--neon-purple);
     }
     .sub-panel {
+      flex: 1;
       display: flex;
       flex-direction: column;
     }
     .sub-panel-title {
-      font-size: 18px;
-      font-weight: 600;
-      color: var(--neon-green);
-      margin-bottom: 16px;
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--neon-magenta);
+      margin-bottom: 12px;
       text-transform: uppercase;
-      letter-spacing: 2px;
-      text-shadow: 0 0 8px var(--neon-green);
+      letter-spacing: 1.5px;
+      text-shadow: 0 0 6px var(--neon-magenta);
     }
     .result {
       font-family: 'IBM Plex Mono', monospace;
-      font-size: 16px;
-      background: #0a0e14;
+      font-size: 14px;
+      background: #0c1018;
       color: var(--text);
-      padding: 20px;
-      border: 3px solid var(--neon-blue);
-      border-radius: 10px;
+      padding: 16px;
+      border: 2px solid var(--neon-purple);
+      border-radius: 6px;
       overflow: auto;
-      max-height: 520px;
+      max-height: 400px;
       white-space: pre-wrap;
       flex: 1;
-      box-shadow: inset 0 0 8px rgba(0, 240, 255, 0.4);
+      box-shadow: inset 0 0 6px rgba(155, 0, 255, 0.3);
     }
     footer {
       margin-top: auto;
-      padding: 32px 0;
+      padding: 24px 0;
       text-align: center;
       width: 100%;
       z-index: 1;
@@ -156,26 +177,28 @@
       left: 0;
     }
     .developed-by {
-      font-size: 20px;
-      color: var(--neon-blue);
-      text-shadow: 0 0 12px var(--neon-blue), 0 0 24px var(--neon-blue);
-      margin-bottom: 8px;
-      letter-spacing: 3px;
+      font-size: 18px;
+      color: var(--neon-magenta);
+      text-shadow: 0 0 10px var(--neon-magenta), 0 0 20px var(--neon-magenta);
+      margin-bottom: 6px;
+      letter-spacing: 2px;
       text-transform: uppercase;
+      animation: flicker 2s infinite;
     }
     .copyright {
-      font-size: 14px;
+      font-size: 12px;
       color: var(--text);
-      opacity: 0.6;
+      opacity: 0.7;
     }
     @media (max-width: 768px) {
-      .card { grid-template-columns: 1fr; }
-      .right-panel { grid-template-columns: 1fr; gap: 20px; }
+      .card { flex-direction: column; }
+      .right-panel { flex-direction: column; gap: 16px; }
     }
   </style>
 </head>
 <body>
   <canvas id="matrix"></canvas>
+  <div class="hud-overlay"></div>
   <div class="card" role="main">
     <div class="panel">
       <div class="form-card">
@@ -201,85 +224,92 @@
     <div class="copyright">© All Rights Reserved</div>
   </footer>
   <script>
-    // Matrix Rain and Electric Shocks Background
+    // Matrix Rain, Electric Shocks, and HUD Background
     (function() {
       const canvas = document.getElementById('matrix');
       const ctx = canvas.getContext('2d');
       canvas.height = window.innerHeight;
       canvas.width = window.innerWidth;
       const chars = '01abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ@#$%^&*';
-      const fontSize = 14;
+      const fontSize = 10;
       const columns = Math.floor(canvas.width / fontSize);
-      const drops = Array(columns).fill(0);
+      const drops = Array(columns).fill().map(() => ({ y: 0, xOffset: 0, speed: 1 + Math.random() * 0.5 }));
       const shocks = [];
 
       // Generate electric shock
       function createShock() {
         const x = Math.random() * canvas.width;
         const y = 0;
-        const length = 100 + Math.random() * 200;
+        const length = 60 + Math.random() * 100;
         const segments = [];
         let currentY = y;
         while (currentY < y + length && currentY < canvas.height) {
           segments.push({
-            x: x + (Math.random() - 0.5) * 20,
+            x: x + (Math.random() - 0.5) * 12,
             y: currentY
           });
-          currentY += 10 + Math.random() * 20;
+          currentY += 6 + Math.random() * 12;
         }
         shocks.push({ segments, opacity: 1, time: 0 });
       }
 
       // Draw matrix rain and shocks
       function draw() {
-        ctx.fillStyle = 'rgba(10, 14, 20, 0.08)';
+        ctx.fillStyle = 'rgba(12, 16, 24, 0.12)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Matrix rain
-        ctx.fillStyle = 'var(--neon-green)';
+        // Matrix rain with jitter
+        ctx.fillStyle = 'var(--neon-magenta)';
         ctx.font = `${fontSize}px IBM Plex Mono`;
         for (let i = 0; i < drops.length; i++) {
           const text = chars.charAt(Math.floor(Math.random() * chars.length));
-          const x = i * fontSize;
-          const y = drops[i] * fontSize;
+          const x = i * fontSize + drops[i].xOffset;
+          const y = drops[i].y * fontSize;
           ctx.fillText(text, x, y);
-          if (y > canvas.height && Math.random() > 0.975) drops[i] = 0;
-          drops[i]++;
+          drops[i].y += drops[i].speed;
+          if (Math.random() < 0.15) drops[i].xOffset += (Math.random() - 0.5) * 6;
+          if (Math.random() < 0.05) drops[i].y += Math.random() * 10;
+          if (y > canvas.height && Math.random() > 0.93) {
+            drops[i].y = 0;
+            drops[i].xOffset = 0;
+            drops[i].speed = 1 + Math.random() * 0.5;
+          }
         }
 
         // Electric shocks
         shocks.forEach((shock, index) => {
           ctx.beginPath();
-          ctx.strokeStyle = `rgba(0, 240, 255, ${shock.opacity})`;
+          ctx.strokeStyle = `rgba(155, 0, 255, ${shock.opacity})`;
           ctx.lineWidth = 2;
           ctx.moveTo(shock.segments[0].x, shock.segments[0].y);
           for (let i = 1; i < shock.segments.length; i++) {
             ctx.lineTo(shock.segments[i].x, shock.segments[i].y);
           }
           ctx.stroke();
-          shock.opacity -= 0.02;
+          shock.opacity -= 0.04;
           shock.time += 1;
           if (shock.opacity <= 0) shocks.splice(index, 1);
         });
 
         // Randomly add new shocks
-        if (Math.random() < 0.05) createShock();
+        if (Math.random() < 0.15) createShock();
       }
 
-      setInterval(draw, 50);
+      setInterval(draw, 25);
       window.addEventListener('resize', () => {
         canvas.height = window.innerHeight;
         canvas.width = window.innerWidth;
         drops.length = Math.floor(canvas.width / fontSize);
-        drops.fill(0);
+        drops.fill().map(() => ({ y: 0, xOffset: 0, speed: 1 + Math.random() * 0.5 }));
       });
     })();
 
     // Stripe Integration
     (async () => {
       const API_ENDPOINT_BASE = "https://phop.onrender.com/gateway=skbased/key=rockysoon";
-      const SK_KEY = "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";
-      const PK = "pk_live_51049Hm4QFaGycgRKOIbupRw7rf65FJESmPqWZk9Jtpf2YCvxnjMAFX7dOPAgoxv9M2wwhi5OwFBx1EzuoTxNzLJD00ViBbMvkQ";
+      // Replace with matching test keys from the SAME Stripe account
+      const SK_KEY = "sk_test_51..."; // Replace with your test secret key
+      const PK = "pk_test_51..."; // Replace with your test public key
       const checkBtn = document.getElementById('checkBtn');
       const tokenResultEl = document.getElementById('token-result');
       const resultEl = document.getElementById('result');
@@ -299,14 +329,14 @@
           elements = stripe.elements();
           const style = {
             base: {
-              fontFamily: '"IBM Plex Mono", monospace',
-              fontSize: '18px',
-              color: 'var(--neon-green)',
-              '::placeholder': { color: '#6b7280' },
-              lineHeight: '32px'
+              fontFamily: '"Orbitron", "IBM Plex Mono", monospace',
+              fontSize: '16px',
+              color: 'var(--text)',
+              '::placeholder': { color: '#4b6b80' },
+              lineHeight: '28px'
             },
             invalid: {
-              color: '#ff5555'
+              color: '#ff4d4d'
             }
           };
           card = elements.create('card', {
