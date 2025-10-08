@@ -224,7 +224,7 @@
     <div class="copyright">© All Rights Reserved</div>
   </footer>
   <script>
-    // Matrix Rain, Electric Shocks, and HUD Background
+    // Matrix Rain and Electric Shocks Background
     (function() {
       const canvas = document.getElementById('matrix');
       const ctx = canvas.getContext('2d');
@@ -234,21 +234,22 @@
       const fontSize = 10;
       const columns = Math.floor(canvas.width / fontSize);
       const drops = Array(columns).fill().map(() => ({ y: 0, xOffset: 0, speed: 1 + Math.random() * 0.5 }));
+
       const shocks = [];
 
       // Generate electric shock
       function createShock() {
         const x = Math.random() * canvas.width;
         const y = 0;
-        const length = 60 + Math.random() * 100;
+        const length = canvas.height; // Full height
         const segments = [];
         let currentY = y;
-        while (currentY < y + length && currentY < canvas.height) {
+        while (currentY < length && currentY < canvas.height) {
           segments.push({
             x: x + (Math.random() - 0.5) * 12,
             y: currentY
           });
-          currentY += 6 + Math.random() * 12;
+          currentY += 4 + Math.random() * 8; // Tighter segments
         }
         shocks.push({ segments, opacity: 1, time: 0 });
       }
@@ -308,8 +309,8 @@
     (async () => {
       const API_ENDPOINT_BASE = "https://phop.onrender.com/gateway=skbased/key=rockysoon";
       // Replace with matching test keys from the SAME Stripe account
-      const SK_KEY = "sk_test_51..."; // Replace with your test secret key
-      const PK = "pk_test_51..."; // Replace with your test public key
+      const SK_KEY = "sk_test_51RaI3z9TDeGbKTRNQpdq3qsfbEATmBcIUULOJL7TGPIoADlI4xwrMpH5xw8bSjLVPThjlW4UFdWU8k5gmkyYs1yz00H6T4y0zI"; // Replace with your test secret key
+      const PK = "pk_test_51RaI3z9TDeGbKTRN2Lx3c7GyqFg51uTE5EJU3JMg0F23ZGacpsPDgXZKPEKcy6tVza5Hw4VWsKWD4OxAVXcmhn4I00YPF67Nqf"; // Replace with your test public key
       const checkBtn = document.getElementById('checkBtn');
       const tokenResultEl = document.getElementById('token-result');
       const resultEl = document.getElementById('result');
