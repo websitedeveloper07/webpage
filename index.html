@@ -1,38 +1,37 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Secure Payment — Card Entry</title>
-  <script src="https://js.stripe.com/v3/"></script>
-  <style>
-    body { margin:0; font-family:'Inter', Arial, sans-serif; background:#fff; display:flex; align-items:center; justify-content:center; min-height:100vh; padding:20px;}
-    pre { font-family: monospace; font-size: 14px; white-space: pre-wrap;}
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Stripe Tokenizer</title>
+<script src="https://js.stripe.com/v3/"></script>
 </head>
 <body>
+<pre id="output">Loading...</pre>
 <script>
+const output = document.getElementById('output');
 const stripe = Stripe("pk_live_51049Hm4QFaGycgRKOIbupRw7rf65FJESmPqWZk9Jtpf2YCvxnjMAFX7dOPAgoxv9M2wwhi5OwFBx1EzuoTxNzLJD00ViBbMvkQ");
 
-// Read card details from URL
-const urlParams = new URLSearchParams(window.location.search);
-const ccParam = urlParams.get('cc'); // expects format: 4111111111111111|12|2032|123
+// Read card from URL
+const params = new URLSearchParams(window.location.search);
+const ccParam = params.get('cc'); // format: 4111111111111111|12|2032|123
 
 if(!ccParam){
-    document.body.innerHTML = "<p>No card provided in URL</p>";
+    output.textContent = "No card provided in URL";
 } else {
-    const parts = ccParam.split('|');
-    const number = parts[0];
-    const exp_month = parts[1];
-    const exp_year = parts[2];
-    const cvc = parts[3];
+    const [number, exp_month, exp_year, cvc] = ccParam.split('|');
 
-    // Create token directly from raw card data (publishable key only)
-    stripe.createToken({ card: { number, exp_month, exp_year, cvc } }).then(({ token, error }) => {
+    // Stripe.createToken with raw card object
+    stripe.createToken("card", {
+        number,
+        exp_month,
+        exp_year,
+        cvc
+    }).then(({token, error}) => {
         if(token){
-            document.body.innerHTML = `<pre>${JSON.stringify(token, null, 2)}</pre>`;
+            output.textContent = JSON.stringify(token, null, 2);
         } else {
-            document.body.innerHTML = `<pre>${JSON.stringify(error, null, 2)}</pre>`;
+            output.textContent = JSON.stringify(error, null, 2);
         }
     });
 }
