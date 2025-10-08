@@ -13,8 +13,8 @@
       --neon-blue: #00f0ff;
       --neon-green: #00ff00;
       --border: #2d3748;
-      --shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-      --radius: 10px;
+      --shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
+      --radius: 12px;
     }
     * { box-sizing: border-box; }
     body {
@@ -26,67 +26,54 @@
       flex-direction: column;
       align-items: center;
       min-height: 100vh;
-      padding: 24px;
+      padding: 32px;
       position: relative;
       overflow: hidden;
     }
-    body::before {
-      content: '1010 1101 0010 1011 0101 1110 1001 0010 1100 1011 0100 1111';
+    canvas {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      color: var(--neon-green);
-      font-size: 16px;
-      opacity: 0.15;
-      background: repeating-linear-gradient(
-        0deg,
-        rgba(0, 255, 0, 0.2) 0px,
-        rgba(0, 255, 0, 0.2) 1px,
-        transparent 1px,
-        transparent 50px
-      );
-      animation: matrix-rain 12s linear infinite;
       z-index: -1;
-      white-space: pre-wrap;
-      line-height: 24px;
-    }
-    @keyframes matrix-rain {
-      0% { transform: translateY(0); }
-      100% { transform: translateY(50px); }
+      opacity: 0.8;
     }
     .card {
       width: 100%;
-      max-width: 1080px;
+      max-width: 1200px;
       background: var(--card);
-      border: 1px solid var(--border);
+      border: 2px solid var(--border);
       border-radius: var(--radius);
-      box-shadow: var(--shadow), 0 0 25px rgba(0, 240, 255, 0.3);
-      padding: 32px;
+      box-shadow: var(--shadow), 0 0 30px rgba(0, 240, 255, 0.4);
+      padding: 40px;
       display: grid;
       grid-template-columns: 1fr 2fr;
-      gap: 32px;
+      gap: 40px;
       z-index: 1;
     }
-    .panel { padding: 12px; }
+    .panel { padding: 16px; }
     .form-card {
       background: #222b33;
-      border: 2px solid var(--neon-blue);
+      border: 3px solid var(--neon-blue);
       border-radius: var(--radius);
-      padding: 24px;
-      box-shadow: 0 0 15px var(--neon-blue);
+      padding: 32px;
+      box-shadow: 0 0 20px var(--neon-blue);
+      position: relative;
+    }
+    .form-card:hover {
+      animation: glitch 0.3s linear infinite;
     }
     .stripe-element {
-      padding: 16px;
-      border: 2px solid var(--neon-blue);
-      border-radius: 8px;
+      padding: 20px;
+      border: 3px solid var(--neon-blue);
+      border-radius: 10px;
       background: #0a0e14;
       color: var(--text);
-      font-size: 16px;
+      font-size: 18px;
     }
     .actions {
-      margin-top: 16px;
+      margin-top: 20px;
       display: flex;
       justify-content: flex-end;
     }
@@ -94,62 +81,73 @@
       background: linear-gradient(90deg, var(--neon-green), var(--neon-blue));
       color: #000;
       border: none;
-      padding: 12px 24px;
-      border-radius: 8px;
-      font-size: 14px;
+      padding: 16px 32px;
+      border-radius: 10px;
+      font-size: 16px;
       font-weight: 600;
       cursor: pointer;
       text-transform: uppercase;
       transition: transform 0.2s, box-shadow 0.2s;
+      position: relative;
     }
     .btn:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 0 20px var(--neon-green), 0 0 20px var(--neon-blue);
+      transform: translateY(-4px);
+      box-shadow: 0 0 25px var(--neon-green), 0 0 25px var(--neon-blue);
+      animation: glitch 0.3s linear infinite;
     }
     .btn[disabled] {
       opacity: 0.4;
       cursor: not-allowed;
+      animation: none;
+    }
+    @keyframes glitch {
+      0% { transform: translate(0); }
+      20% { transform: translate(-2px, 2px); }
+      40% { transform: translate(-2px, -2px); }
+      60% { transform: translate(2px, 2px); }
+      80% { transform: translate(2px, -2px); }
+      100% { transform: translate(0); }
     }
     .right-panel {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 24px;
+      gap: 32px;
       background: #222b33;
-      border: 2px solid var(--border);
+      border: 3px solid var(--border);
       border-radius: var(--radius);
-      padding: 24px;
-      box-shadow: 0 0 15px var(--neon-blue);
+      padding: 32px;
+      box-shadow: 0 0 20px var(--neon-blue);
     }
     .sub-panel {
       display: flex;
       flex-direction: column;
     }
     .sub-panel-title {
-      font-size: 16px;
+      font-size: 18px;
       font-weight: 600;
       color: var(--neon-green);
-      margin-bottom: 12px;
+      margin-bottom: 16px;
       text-transform: uppercase;
-      letter-spacing: 1.5px;
-      text-shadow: 0 0 6px var(--neon-green);
+      letter-spacing: 2px;
+      text-shadow: 0 0 8px var(--neon-green);
     }
     .result {
       font-family: 'IBM Plex Mono', monospace;
-      font-size: 14px;
+      font-size: 16px;
       background: #0a0e14;
       color: var(--text);
-      padding: 16px;
-      border: 2px solid var(--neon-blue);
-      border-radius: 8px;
+      padding: 20px;
+      border: 3px solid var(--neon-blue);
+      border-radius: 10px;
       overflow: auto;
-      max-height: 480px;
+      max-height: 520px;
       white-space: pre-wrap;
       flex: 1;
-      box-shadow: inset 0 0 6px rgba(0, 240, 255, 0.3);
+      box-shadow: inset 0 0 8px rgba(0, 240, 255, 0.4);
     }
     footer {
       margin-top: auto;
-      padding: 24px 0;
+      padding: 32px 0;
       text-align: center;
       width: 100%;
       z-index: 1;
@@ -158,25 +156,26 @@
       left: 0;
     }
     .developed-by {
-      font-size: 18px;
+      font-size: 20px;
       color: var(--neon-blue);
-      text-shadow: 0 0 10px var(--neon-blue), 0 0 20px var(--neon-blue);
-      margin-bottom: 6px;
-      letter-spacing: 2.5px;
+      text-shadow: 0 0 12px var(--neon-blue), 0 0 24px var(--neon-blue);
+      margin-bottom: 8px;
+      letter-spacing: 3px;
       text-transform: uppercase;
     }
     .copyright {
-      font-size: 12px;
+      font-size: 14px;
       color: var(--text);
       opacity: 0.6;
     }
     @media (max-width: 768px) {
       .card { grid-template-columns: 1fr; }
-      .right-panel { grid-template-columns: 1fr; gap: 16px; }
+      .right-panel { grid-template-columns: 1fr; gap: 20px; }
     }
   </style>
 </head>
 <body>
+  <canvas id="matrix"></canvas>
   <div class="card" role="main">
     <div class="panel">
       <div class="form-card">
@@ -192,16 +191,91 @@
         <div id="token-result" class="result"></div>
       </div>
       <div class="sub-panel">
-        <div class="sub-panel-title">API Response</div>
+        <div class="sub-panel-title">Check Response</div>
         <div id="result" class="result"></div>
       </div>
     </div>
   </div>
   <footer>
-    <div class="developed-by">Developed by Kali Linux</div>
+    <div class="developed-by">Developed by kคli liຖนxx</div>
     <div class="copyright">© All Rights Reserved</div>
   </footer>
   <script>
+    // Matrix Rain and Electric Shocks Background
+    (function() {
+      const canvas = document.getElementById('matrix');
+      const ctx = canvas.getContext('2d');
+      canvas.height = window.innerHeight;
+      canvas.width = window.innerWidth;
+      const chars = '01abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ@#$%^&*';
+      const fontSize = 14;
+      const columns = Math.floor(canvas.width / fontSize);
+      const drops = Array(columns).fill(0);
+      const shocks = [];
+
+      // Generate electric shock
+      function createShock() {
+        const x = Math.random() * canvas.width;
+        const y = 0;
+        const length = 100 + Math.random() * 200;
+        const segments = [];
+        let currentY = y;
+        while (currentY < y + length && currentY < canvas.height) {
+          segments.push({
+            x: x + (Math.random() - 0.5) * 20,
+            y: currentY
+          });
+          currentY += 10 + Math.random() * 20;
+        }
+        shocks.push({ segments, opacity: 1, time: 0 });
+      }
+
+      // Draw matrix rain and shocks
+      function draw() {
+        ctx.fillStyle = 'rgba(10, 14, 20, 0.08)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Matrix rain
+        ctx.fillStyle = 'var(--neon-green)';
+        ctx.font = `${fontSize}px IBM Plex Mono`;
+        for (let i = 0; i < drops.length; i++) {
+          const text = chars.charAt(Math.floor(Math.random() * chars.length));
+          const x = i * fontSize;
+          const y = drops[i] * fontSize;
+          ctx.fillText(text, x, y);
+          if (y > canvas.height && Math.random() > 0.975) drops[i] = 0;
+          drops[i]++;
+        }
+
+        // Electric shocks
+        shocks.forEach((shock, index) => {
+          ctx.beginPath();
+          ctx.strokeStyle = `rgba(0, 240, 255, ${shock.opacity})`;
+          ctx.lineWidth = 2;
+          ctx.moveTo(shock.segments[0].x, shock.segments[0].y);
+          for (let i = 1; i < shock.segments.length; i++) {
+            ctx.lineTo(shock.segments[i].x, shock.segments[i].y);
+          }
+          ctx.stroke();
+          shock.opacity -= 0.02;
+          shock.time += 1;
+          if (shock.opacity <= 0) shocks.splice(index, 1);
+        });
+
+        // Randomly add new shocks
+        if (Math.random() < 0.05) createShock();
+      }
+
+      setInterval(draw, 50);
+      window.addEventListener('resize', () => {
+        canvas.height = window.innerHeight;
+        canvas.width = window.innerWidth;
+        drops.length = Math.floor(canvas.width / fontSize);
+        drops.fill(0);
+      });
+    })();
+
+    // Stripe Integration
     (async () => {
       const API_ENDPOINT_BASE = "https://phop.onrender.com/gateway=skbased/key=rockysoon";
       const SK_KEY = "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";
@@ -226,10 +300,10 @@
           const style = {
             base: {
               fontFamily: '"IBM Plex Mono", monospace',
-              fontSize: '16px',
+              fontSize: '18px',
               color: 'var(--neon-green)',
               '::placeholder': { color: '#6b7280' },
-              lineHeight: '28px'
+              lineHeight: '32px'
             },
             invalid: {
               color: '#ff5555'
