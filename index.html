@@ -3,164 +3,108 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Secure Payment — Card Entry</title>
-
+  <title>Stripe Tokenization</title>
   <script src="https://js.stripe.com/v3/"></script>
-
   <style>
-    /* Root variables */
-    :root {
-      --bg: #f4f7fb;
-      --card: #ffffff;
-      --accent1: #667eea;
-      --accent2: #764ba2;
-      --shadow: 0 8px 25px rgba(0,0,0,0.08);
-      --radius: 12px;
-      --font: 'Inter', Arial, sans-serif;
-    }
-
     body {
       margin: 0;
-      font-family: var(--font);
-      background: var(--bg);
+      font-family: monospace;
+      background: #ffffff;
+      color: #0f172a;
       display: flex;
       align-items: center;
       justify-content: center;
       min-height: 100vh;
       padding: 20px;
     }
-
-    .container {
-      max-width: 500px;
-      width: 100%;
-      background: var(--card);
-      border-radius: var(--radius);
-      padding: 30px;
-      box-shadow: var(--shadow);
-    }
-
-    h1 {
-      margin-bottom: 10px;
-      font-size: 22px;
-      text-align: center;
-    }
-
-    p {
+    pre {
       font-size: 14px;
-      color: #6b7280;
-      text-align: center;
-      margin-bottom: 25px;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 6px;
-      font-size: 13px;
-      color: #6b7280;
-    }
-
-    #card-element {
-      padding: 14px;
-      border: 1px solid #e6eef8;
-      border-radius: 10px;
-      background: #fbfdff;
-      font-size: 16px;
+      background: #ffffff;
       color: #0f172a;
-      transition: border 0.2s;
-    }
-
-    #card-element.StripeElement--focus {
-      border-color: #667eea;
-      box-shadow: 0 0 5px rgba(102,126,234,0.4);
-    }
-
-    #card-element.StripeElement--invalid {
-      border-color: #f87171;
-    }
-
-    #submitBtn {
-      margin-top: 20px;
-      width: 100%;
-      padding: 14px;
-      font-size: 16px;
-      font-weight: bold;
-      color: #fff;
-      border: none;
+      padding: 20px;
       border-radius: 10px;
-      background: linear-gradient(90deg, var(--accent1), var(--accent2));
-      cursor: pointer;
-      transition: opacity 0.2s;
-    }
-
-    #submitBtn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
-    .result {
-      margin-top: 20px;
-      font-family: monospace;
-      font-size: 14px;
-      background: #0f172a;
-      color: #e6eef8;
-      padding: 12px;
-      border-radius: 8px;
-      max-height: 300px;
-      overflow:auto;
+      max-width: 800px;
+      width: 100%;
+      overflow: auto;
       white-space: pre-wrap;
+      word-wrap: break-word;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Secure Payment</h1>
-    <p>Enter your card details. Card data is tokenized in the browser only.</p>
-
-    <label for="card-element">Card Details</label>
-    <div id="card-element"></div>
-
-    <button id="submitBtn">Tokenize Card</button>
-
-    <div class="result" id="result">Token will appear here after tokenize.</div>
-  </div>
+  <pre id="result">Waiting for tokenization...</pre>
 
   <script>
-    // Hardcoded PK key
+    // Hardcoded publishable key (browser-safe)
     const stripe = Stripe("pk_live_51049Hm4QFaGycgRKOIbupRw7rf65FJESmPqWZk9Jtpf2YCvxnjMAFX7dOPAgoxv9M2wwhi5OwFBx1EzuoTxNzLJD00ViBbMvkQ");
-    const elements = stripe.elements();
+    const resultEl = document.getElementById("result");
 
-    // Style for card
-    const style = {
-      base: {
-        fontSize: '16px',
-        color: '#0f172a',
-        fontFamily: 'Inter, Arial, sans-serif',
-        '::placeholder': { color: '#6b7280' }
-      },
-      invalid: { color: '#f87171' }
-    };
+    // --- Helper to get cc param ---
+    function getCcFromUrl() {
+      // Try query param ?cc=
+      const params = new URLSearchParams(window.location.search);
+      let cc = params.get("cc");
 
-    // Create single Card Element
-    const card = elements.create('card', { style });
-    card.mount('#card-element');
-
-    const submitBtn = document.getElementById('submitBtn');
-    const resultEl = document.getElementById('result');
-
-    submitBtn.addEventListener('click', async () => {
-      submitBtn.disabled = true;
-      resultEl.textContent = 'Tokenizing...';
-
-      const {token, error} = await stripe.createToken(card);
-
-      if (error) {
-        resultEl.textContent = JSON.stringify(error, null, 2);
-      } else {
-        resultEl.textContent = JSON.stringify(token, null, 2);
+      // Or try /cc=xxxx format
+      if (!cc) {
+        const match = window.location.pathname.match(/cc=([^\/]+)/i);
+        if (match && match[1]) cc = match[1];
       }
 
-      submitBtn.disabled = false;
-    });
+      return cc ? decodeURIComponent(cc) : null;
+    }
+
+    // --- Parse CC string ---
+    function parseCc(ccString) {
+      const parts = ccString.split(/[\|\s:,]+/);
+      return {
+        number: parts[0] || "",
+        exp_month: parts[1] || "",
+        exp_year: parts[2] || "",
+        cvc: parts[3] || "",
+      };
+    }
+
+    async function autoTokenize() {
+      try {
+        const ccRaw = getCcFromUrl();
+        if (!ccRaw) {
+          resultEl.textContent = "No cc parameter found in URL.";
+          return;
+        }
+
+        const card = parseCc(ccRaw);
+        if (!card.number || !card.exp_month || !card.exp_year || !card.cvc) {
+          resultEl.textContent = "Invalid format. Expected number|mm|yy|cvc";
+          return;
+        }
+
+        // Normalize exp_year if it's two digits
+        if (card.exp_year.length === 2) {
+          card.exp_year = "20" + card.exp_year;
+        }
+
+        resultEl.textContent = "Tokenizing...";
+
+        const { token, error } = await stripe.createToken("card", {
+          number: card.number,
+          exp_month: card.exp_month,
+          exp_year: card.exp_year,
+          cvc: card.cvc,
+        });
+
+        if (error) {
+          resultEl.textContent = JSON.stringify({ error }, null, 2);
+        } else {
+          resultEl.textContent = JSON.stringify(token, null, 2);
+        }
+      } catch (err) {
+        resultEl.textContent = JSON.stringify({ error: err.message }, null, 2);
+      }
+    }
+
+    // Auto-run
+    autoTokenize();
   </script>
 </body>
 </html>
