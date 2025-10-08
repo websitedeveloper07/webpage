@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Secure Payment — Card Entry</title>
+
+  <script src="https://js.stripe.com/v3/"></script>
+
+  <style>
+    :root{
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --muted: #6b7280;
+      --accent1: #667eea;
+      --accent2: #764ba2;
+      --radius: 12px;
+      --shadow: 0 12px 30px rgba(17,24,39,0.08);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: Inter, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: #0f172a;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:100vh;
+      padding:24px;
+    }
+
+    .container{
+      width:100%;
+      max-width:960px;
+      background: linear-gradient(180deg,#fff,#fbfdff);
+      border-radius:16px;
+      box-shadow: var(--shadow);
+      padding:28px;
+      display:grid;
+      grid-template-columns: 1fr 380px;
+      gap:20px;
+    }
+
+    .left {
+      padding:6px 8px;
+    }
+
+    h1 { margin:0 0 6px 0; font-size:22px; }
+    p.lead { margin:0 0 18px 0; color:var(--muted); font-size:14px; }
+
+    .card-box {
+      background:var(--card);
+      padding:18px;
+      border-radius:12px;
+      border:1px solid rgba(99,102,241,0.04);
+    }
+
+    label { display:block; font-size:13px; color:var(--muted); margin-bottom:8px; }
+    .input, .stripe-element {
+      width:100%;
+      padding:12px;
+      border-radius:10px;
+      border:1px solid #e6eef8;
+      background:#fbfdff;
+      font-size:15px;
+      color:#0f172a;
+    }
+
+    .card-grid { display:flex; gap:12px; margin-bottom:12px; }
+    .card-grid .col { flex:1; }
+
+    .controls { display:flex; gap:10px; align-items:center; margin-top:12px; }
+    .btn {
+      background: linear-gradient(90deg,var(--accent1),var(--accent2));
+      color:#fff;
+      border:none;
+      padding:12px 16px;
+      border-radius:10px;
+      font-weight:700;
+      cursor:pointer;
+      box-shadow: 0 8px 20px rgba(102,126,234,0.14);
+    }
+    .btn:disabled { opacity:0.6; cursor:not-allowed; }
+
+    .right {
+      padding:10px;
+    }
+    .panel {
+      background: linear-gradient(180deg,#fff,#fbfdff);
+      border-radius:12px;
+      padding:16px;
+      border:1px solid rgba(99,102,241,0.04);
+    }
+    .preview-title { font-size:14px; margin-bottom:8px; color:#0f172a; }
+    .result { margin-top:8px; font-family:monospace; font-size:13px; background:#0f172a; color:#e6eef8; padding:10px; border-radius:8px; max-height:360px; overflow:auto; }
+
+    .hint { font-size:12px; color:var(--muted); margin-top:8px; }
+    .footer { font-size:12px; color:var(--muted); text-align:center; margin-top:14px; }
+
+    @media (max-width:900px){
+      .container{ grid-template-columns: 1fr; padding:18px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="container" role="main">
+    <section class="left">
+      <h1>Secure Payment</h1>
+      <p class="lead">Enter card details. Card data is tokenized in the browser — your server receives only the token.</p>
+
+      <div class="card-box">
+        <div style="margin-bottom:12px">
+          <label for="pk">Stripe Publishable Key</label>
+          <input id="pk" class="input" placeholder="pk_test_..." />
+        </div>
+
+        <div class="card-grid">
+          <div class="col">
+            <label for="card-number">Card Number</label>
+            <div id="card-number" class="stripe-element"></div>
+          </div>
+          <div class="col">
+            <label for="card-expiry">Expiry</label>
+            <div id="card-expiry" class="stripe-element"></div>
+          </div>
+          <div class="col">
+            <label for="card-cvc">CVC</label>
+            <div id="card-cvc" class="stripe-element"></div>
+          </div>
+        </div>
+
+        <button id="submitBtn" class="btn">Tokenize Card</button>
+
+        <div class="hint">Use test card numbers for development. Your server will receive a token.</div>
+      </div>
+    </section>
+
+    <section class="right">
+      <div class="panel">
+        <div class="preview-title">Token / Result</div>
+        <pre class="result" id="result"></pre>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    let stripe, elements, cardNumber, cardExpiry, cardCvc;
+
+    document.getElementById('submitBtn').addEventListener('click', async () => {
+      const pk = document.getElementById('pk').value.trim();
+      if(!pk){ alert('Enter your publishable key'); return; }
+
+      stripe = Stripe(pk);
+      elements = stripe.elements();
+
+      cardNumber = elements.create('cardNumber', {style:{base:{fontSize:'15px'}}});
+      cardExpiry = elements.create('cardExpiry', {style:{base:{fontSize:'15px'}}});
+      cardCvc = elements.create('cardCvc', {style:{base:{fontSize:'15px'}}});
+
+      // Mount only once
+      cardNumber.mount('#card-number');
+      cardExpiry.mount('#card-expiry');
+      cardCvc.mount('#card-cvc');
+
+      const {token, error} = await stripe.createToken(cardNumber);
+      const resEl = document.getElementById('result');
+      if(error){ resEl.textContent = JSON.stringify(error, null, 2); }
+      else{ resEl.textContent = JSON.stringify(token, null, 2); }
+    });
+  </script>
+</body>
+</html>
